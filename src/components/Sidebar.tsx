@@ -272,14 +272,14 @@ export default function Sidebar({
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <Search className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
               </span>
               <input
                 type="text"
                 placeholder="Tìm tên lớp, môn học..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-800/60 text-xs text-white pl-8.5 pr-14 py-2.5 rounded-lg border border-slate-600 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30 placeholder-slate-400 font-sans transition-all shadow-sm"
+                className="w-full bg-slate-950/50 text-xs text-white pl-8.5 pr-14 py-2.5 rounded-lg border-2 border-indigo-500 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30 placeholder-slate-500 font-sans transition-all shadow-[0_0_10px_rgba(99,102,241,0.1)]"
               />
               {hasActiveFilters && (
                 <button
@@ -296,10 +296,10 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => setShowFilters(!showFilters)}
-                className={`w-[38px] h-[38px] rounded-lg border transition-all cursor-pointer flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 shadow-sm ${
+                className={`w-[38px] h-[38px] rounded-lg border-2 transition-all cursor-pointer flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 shadow-[0_0_10px_rgba(99,102,241,0.1)] ${
                   showFilters
                     ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
-                    : 'bg-slate-800/60 border-slate-600 text-slate-300 hover:text-white hover:border-slate-400'
+                    : 'bg-slate-950/50 border-indigo-500 text-indigo-400 hover:text-indigo-300 hover:border-indigo-400'
                 }`}
                 title={showFilters ? "Thu gọn bộ lọc" : "Mở rộng bộ lọc"}
               >
