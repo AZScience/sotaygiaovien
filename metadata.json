@@ -1,0 +1,6 @@
+{
+  "name": "Sổ tay Giáo viên",
+  "description": "Ứng dụng quản lý thông tin lớp học, kết quả học tập và số giờ nghỉ của học sinh sinh viên chuyên nghiệp.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

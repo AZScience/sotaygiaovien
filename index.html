@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trường Trung cấp Tôn Đức Thắng: Sổ tay Giáo viên</title>
+    <script>
+      // Workaround for platform sandbox errors trying to override read-only window.fetch
+      (function() {
+        try {
+          var originalFetch = window.fetch;
+          Object.defineProperty(window, 'fetch', {
+            get: function() { return originalFetch; },
+            set: function(val) { originalFetch = val; },
+            configurable: true,
+            enumerable: true
+          });
+        } catch (e) {
+          console.warn('Could not redefine window.fetch properties:', e);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
