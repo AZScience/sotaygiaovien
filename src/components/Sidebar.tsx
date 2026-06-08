@@ -59,6 +59,7 @@ export default function Sidebar({
   const [showFilters, setShowFilters] = useState(false);
   const [expandedClassIds, setExpandedClassIds] = useState<Record<string, boolean>>({});
   const [isSystemMenuExpanded, setIsSystemMenuExpanded] = useState(false);
+  const [isManagementMenuExpanded, setIsManagementMenuExpanded] = useState(false);
 
   // Backup & Restore states
   const [showRestoreModal, setShowRestoreModal] = useState(false);
@@ -568,36 +569,45 @@ export default function Sidebar({
       {/* Personnel (Lecturer & Student) Management sidebar menu option */}
       {activeClass && (
         <div className="px-4 py-3 border-t border-slate-800/80 bg-slate-950/15 shrink-0">
-          <span className="block px-2 text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2 select-none flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5 text-violet-400 shrink-0" />
-            <span>Quản trị &amp; Thành viên</span>
-          </span>
-          <button
-            onClick={() => {
-              onActiveTabChange('management');
-              if (onClose) onClose();
-            }}
-            className={`w-full flex items-center gap-3.5 p-3 rounded-xl transition-all duration-200 cursor-pointer text-left border ${
-              activeTab === 'management'
-                ? 'bg-indigo-600 border-indigo-500 text-white font-bold shadow-lg shadow-indigo-900/10'
-                : 'text-slate-350 hover:bg-slate-800/35 hover:text-slate-100 border-slate-850 bg-slate-950/20 hover:border-slate-800'
-            }`}
-            title="Quản lý Giảng viên và Học viên"
+          <button 
+            onClick={() => setIsManagementMenuExpanded(!isManagementMenuExpanded)}
+            className="w-full flex items-center justify-between px-2 text-slate-400 hover:text-slate-200 transition cursor-pointer mb-2 select-none group"
           >
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-              activeTab === 'management' ? 'bg-white/15 text-white' : 'bg-slate-950/50 text-indigo-400 border border-slate-800'
-            }`}>
-              <Users className="w-4.5 h-4.5" />
-            </div>
-            <div className="flex-1 min-w-0 font-sans">
-              <p className={`text-xs font-bold leading-none select-none ${activeTab === 'management' ? 'text-white' : 'text-slate-200'}`}>
-                Hồ sơ giảng viên & học viên
-              </p>
-              <p className={`text-[10px] mt-1.5 select-none leading-none truncate ${activeTab === 'management' ? 'text-indigo-200' : 'text-slate-400'}`}>
-                {activeClass.students.length} học viên • {activeClass.metadata.teacherName || 'Chưa phân công'}
-              </p>
-            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+              <span>Quản trị &amp; Thành viên</span>
+            </span>
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isManagementMenuExpanded ? 'rotate-180' : ''}`} />
           </button>
+          
+          <div className={`overflow-hidden transition-all duration-300 space-y-2 ${isManagementMenuExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+            <button
+              onClick={() => {
+                onActiveTabChange('management');
+                if (onClose) onClose();
+              }}
+              className={`w-full flex items-center gap-3.5 p-3 rounded-xl transition-all duration-200 cursor-pointer text-left border ${
+                activeTab === 'management'
+                  ? 'bg-indigo-600 border-indigo-500 text-white font-bold shadow-lg shadow-indigo-900/10'
+                  : 'text-slate-350 hover:bg-slate-800/35 hover:text-slate-100 border-slate-850 bg-slate-950/20 hover:border-slate-800'
+              }`}
+              title="Quản lý Giảng viên và Học viên"
+            >
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                activeTab === 'management' ? 'bg-white/15 text-white' : 'bg-slate-950/50 text-indigo-400 border border-slate-800'
+              }`}>
+                <Users className="w-4.5 h-4.5" />
+              </div>
+              <div className="flex-1 min-w-0 font-sans">
+                <p className={`text-xs font-bold leading-none select-none ${activeTab === 'management' ? 'text-white' : 'text-slate-200'}`}>
+                  Hồ sơ giảng viên & học viên
+                </p>
+                <p className={`text-[10px] mt-1.5 select-none leading-none truncate ${activeTab === 'management' ? 'text-indigo-200' : 'text-slate-400'}`}>
+                  {activeClass.students.length} học viên • {activeClass.metadata.teacherName || 'Chưa phân công'}
+                </p>
+              </div>
+            </button>
+          </div>
         </div>
       )}
 
