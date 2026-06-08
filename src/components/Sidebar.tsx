@@ -9,8 +9,9 @@ import {
   Plus, Trash2, Download, Upload, RotateCcw, BookOpen, GraduationCap, 
   Calendar, Settings, Users, Lock, Unlock, Search, Database, School, 
   Compass, Hash, UserCheck, Layers, ChevronDown, X, SlidersHorizontal,
-  LayoutGrid, BookMarked, HardDrive
+  LayoutGrid, BookMarked, HardDrive, History, ArrowDownToLine, Trash
 } from 'lucide-react';
+import { BackupInfo, createBackup, getBackups, restoreBackup, deleteBackup } from '../utils/sqlite';
 
 interface SidebarProps {
   db: AppDatabase;
@@ -57,6 +58,52 @@ export default function Sidebar({
   const [filterTeacher, setFilterTeacher] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [expandedClassIds, setExpandedClassIds] = useState<Record<string, boolean>>({});
+
+  // Backup & Restore states
+  const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [backupsList, setBackupsList] = useState<BackupInfo[]>([]);
+
+  // Function to load backups
+  const handleOpenRestore = async () => {
+    try {
+      const list = await getBackups();
+      setBackupsList(list);
+      setShowRestoreModal(true);
+    } catch (e: any) {
+      alert('Không thể tải danh sách bản sao lưu: ' + e.message);
+    }
+  };
+
+  const handleCreateBackup = async () => {
+    try {
+      await createBackup();
+      alert('Tạo bản sao lưu thành công!');
+    } catch (e: any) {
+      alert('Lỗi khi tạo sao lưu: ' + e.message);
+    }
+  };
+
+  const handleRestoreBackup = async (backupId: string) => {
+    if (!confirm('Bạn có chắc chắn muốn khôi phục bản sao lưu này? Dữ liệu HIỆN TẠI sẽ bị ghi đè hoàn toàn!')) return;
+    try {
+      await restoreBackup(backupId);
+      alert('Khôi phục thành công! Ứng dụng sẽ được tải lại.');
+      window.location.reload();
+    } catch (e: any) {
+      alert('Lỗi khôi phục: ' + e.message);
+    }
+  };
+
+  const handleDeleteBackup = async (backupId: string) => {
+    if (!confirm('Xóa bản sao lưu này? Không thể hoàn tác!')) return;
+    try {
+      await deleteBackup(backupId);
+      const list = await getBackups();
+      setBackupsList(list);
+    } catch (e: any) {
+      alert('Lỗi khi xóa: ' + e.message);
+    }
+  };
 
   const activeClass = db.classes[db.activeClassId];
 
@@ -145,40 +192,6 @@ export default function Sidebar({
     setNewTeacherName('');
     setErrorMsg('');
     setShowAddModal(false);
-  };
-
-  const exportJSON = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `SoTayGiaoVien_Backup_${new Date().toISOString().split('T')[0]}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  };
-
-  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const parsed = JSON.parse(event.target?.result as string);
-        if (parsed && typeof parsed === 'object' && parsed.classes && parsed.activeClassId) {
-          onImportDatabase(parsed);
-          alert('Khôi phục dữ liệu từ tệp tin thành công!');
-        } else {
-          alert('Tệp tin không đúng định dạng Sổ tay Giáo viên backup.');
-        }
-      } catch (err) {
-        alert('Có lỗi xảy ra khi đọc file JSON.');
-      }
-    };
-    reader.readAsText(file);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
   };
 
   return (
@@ -560,58 +573,26 @@ export default function Sidebar({
         </span>
 
         <div className="grid grid-cols-2 gap-2">
-          {/* Export button */}
+          {/* Backup button */}
           <button
-            onClick={exportJSON}
-            className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-850 text-slate-300 text-xs font-bold transition border border-slate-800/85 cursor-pointer shadow-sm select-none"
-            title="Xuất dữ liệu dạng JSON"
+            onClick={handleCreateBackup}
+            className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-400 hover:text-emerald-300 text-xs font-bold transition border border-emerald-800/50 hover:border-emerald-700/60 cursor-pointer shadow-sm select-none"
+            title="Tạo bản sao lưu hệ thống"
           >
-            <Download className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-            <span>Xuất JSON</span>
+            <Download className="w-3.5 h-3.5 shrink-0" />
+            <span>Backup</span>
           </button>
 
-          {/* Import button */}
+          {/* Restore button */}
           <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-850 text-slate-300 text-xs font-bold transition border border-slate-800/85 cursor-pointer shadow-sm select-none"
-            title="Nhập dữ liệu sao lưu"
+            onClick={handleOpenRestore}
+            className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-indigo-950/40 hover:bg-indigo-900/60 text-indigo-400 hover:text-indigo-300 text-xs font-bold transition border border-indigo-800/50 hover:border-indigo-700/60 cursor-pointer shadow-sm select-none"
+            title="Khôi phục dữ liệu từ các bản sao lưu"
           >
-            <Upload className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-            <span>Nhập JSON</span>
+            <History className="w-3.5 h-3.5 shrink-0" />
+            <span>Restore</span>
           </button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImportFile}
-            accept=".json"
-            className="hidden"
-          />
         </div>
-
-        {/* SQLite Export Button */}
-        {onExportSQLite && (
-          <button
-            onClick={onExportSQLite}
-            className="w-full mt-2 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-indigo-950/40 hover:bg-indigo-900/40 text-indigo-300 hover:text-indigo-200 border border-indigo-800/50 hover:border-indigo-700/60 text-xs font-semibold transition cursor-pointer select-none"
-            title="Xuất file SQLite (.db) — có thể mở bằng DB Browser for SQLite"
-          >
-            <HardDrive className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-            <span>Xuất SQLite (.db)</span>
-          </button>
-        )}
-
-        {/* Restore defaults */}
-        <button
-          onClick={() => {
-            if (confirm('Bạn có muốn khôi phục cơ sở dữ liệu về mẫu ban đầu? Toàn bộ lớp học và dữ liệu điểm hiện tại của bạn sẽ bị xóa.')) {
-              onRestoreDefaults();
-            }
-          }}
-          className="w-full mt-2 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-slate-900/50 hover:bg-rose-950/20 text-slate-400 hover:text-rose-400 border border-slate-805 hover:border-rose-900/40 text-xs font-semibold transition cursor-pointer select-none"
-        >
-          <RotateCcw className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-          <span>Khôi phục dữ liệu gốc</span>
-        </button>
 
         <div className="mt-3 pt-2.5 border-t border-slate-900/80 flex justify-between items-center text-[10px] text-slate-500 px-1 font-mono select-none">
           <span className="flex items-center gap-1">
@@ -631,6 +612,68 @@ export default function Sidebar({
           <span>Sỹ số: {activeClass?.students.length || 0}</span>
         </div>
       </div>
+
+      {/* Restore Modal popup */}
+      {showRestoreModal && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-display font-semibold text-white flex items-center gap-2">
+                <History className="w-5 h-5 text-indigo-400 shrink-0" />
+                <span>Khôi phục dữ liệu</span>
+              </h3>
+              <button 
+                onClick={() => setShowRestoreModal(false)}
+                className="p-1.5 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin space-y-2 mb-4 min-h-[150px]">
+              {backupsList.length === 0 ? (
+                <div className="text-center text-slate-500 py-8 text-sm italic border border-dashed border-slate-800 rounded-lg">
+                  Chưa có bản sao lưu nào. <br/> Hãy dùng chức năng Backup để tạo!
+                </div>
+              ) : (
+                backupsList.map(b => (
+                  <div key={b.id} className="flex items-center justify-between bg-slate-950 border border-slate-800 p-3 rounded-lg hover:border-slate-700 transition">
+                    <div>
+                      <div className="text-sm font-semibold text-slate-200">{b.date}</div>
+                      <div className="text-xs text-slate-500 font-mono mt-0.5">{b.id}</div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleRestoreBackup(b.id)}
+                        className="p-2 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 hover:text-indigo-300 rounded-md transition"
+                        title="Khôi phục bản này"
+                      >
+                        <ArrowDownToLine className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteBackup(b.id)}
+                        className="p-2 bg-rose-600/10 hover:bg-rose-600/30 text-rose-500 hover:text-rose-400 rounded-md transition"
+                        title="Xóa bản sao lưu"
+                      >
+                        <Trash className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-slate-800 flex justify-end">
+              <button
+                onClick={() => setShowRestoreModal(false)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold rounded-lg transition cursor-pointer"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Class Modal popup */}
       {showAddModal && (

@@ -1077,11 +1077,7 @@ export default function App() {
 
           {activeTab === 'dashboard' && (
             <TabDashboard
-              students={activeClass.students}
-              grades={activeClass.grades}
-              sessions={activeClass.sessions}
-              attendance={activeClass.attendance}
-              classMetadata={activeClass.metadata}
+              db={db}
             />
           )}
 

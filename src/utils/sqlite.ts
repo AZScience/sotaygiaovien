@@ -133,6 +133,64 @@ export async function persistSQLiteDB(): Promise<void> {
   await idbSet(IDB_KEY, data);
 }
 
+export interface BackupInfo {
+  id: string;
+  date: string;
+  sizeBytes: number;
+}
+
+/** Tạo một bản sao lưu (Backup) mới vào IndexedDB */
+export async function createBackup(): Promise<void> {
+  const data = await idbGet(IDB_KEY);
+  if (!data) throw new Error('Không tìm thấy dữ liệu hiện tại để sao lưu');
+  const backupId = `backup_${Date.now()}`;
+  await idbSet(backupId, data);
+}
+
+/** Lấy danh sách các bản sao lưu hiện có */
+export async function getBackups(): Promise<BackupInfo[]> {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE_NAME, 'readonly');
+    const store = tx.objectStore(IDB_STORE_NAME);
+    const req = store.getAllKeys();
+    req.onsuccess = () => {
+      const keys = req.result as string[];
+      const backupKeys = keys.filter(k => k.startsWith('backup_')).sort().reverse();
+      
+      const backups: BackupInfo[] = backupKeys.map(k => {
+        const tsStr = k.replace('backup_', '');
+        const ts = parseInt(tsStr, 10);
+        return {
+          id: k,
+          date: new Date(ts).toLocaleString('vi-VN'),
+          sizeBytes: 0 // Size query requires getting all blobs, which might be slow. Omit for now or just set 0.
+        };
+      });
+      resolve(backups);
+    };
+    req.onerror = () => reject(tx.error);
+  });
+}
+
+/** Khôi phục từ một bản sao lưu */
+export async function restoreBackup(backupId: string): Promise<void> {
+  const data = await idbGet(backupId);
+  if (!data) throw new Error('Không tìm thấy bản sao lưu này');
+  await idbSet(IDB_KEY, data); // Đè lên main_db
+}
+
+/** Xóa một bản sao lưu */
+export async function deleteBackup(backupId: string): Promise<void> {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE_NAME, 'readwrite');
+    tx.objectStore(IDB_STORE_NAME).delete(backupId);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /** Đọc AppDatabase từ SQLite */

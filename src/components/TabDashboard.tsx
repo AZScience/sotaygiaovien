@@ -34,7 +34,7 @@ import {
   FileSpreadsheet,
   Gauge
 } from 'lucide-react';
-import { Student, Grade, AttendanceSession, AttendanceRecord, ClassMetadata } from '../types';
+import { AppDatabase, Student, Grade, AttendanceSession, AttendanceRecord, ClassMetadata, ClassData } from '../types';
 import { 
   calculatePeriodicGradeAverage, 
   calculateExamGradeAverage, 
@@ -43,23 +43,70 @@ import {
 } from '../utils/database';
 
 interface TabDashboardProps {
-  students: Student[];
-  grades: Grade[];
-  sessions: AttendanceSession[];
-  attendance: AttendanceRecord[];
-  classMetadata: ClassMetadata;
+  db: AppDatabase;
 }
 
 export default function TabDashboard({
-  students,
-  grades,
-  sessions,
-  attendance,
-  classMetadata
+  db
 }: TabDashboardProps) {
 
+  // Global Filters State
+  const [selectedSchoolYear, setSelectedSchoolYear] = useState<string>('');
+  const [selectedSemester, setSelectedSemester] = useState<string>('');
+  const [selectedClassId, setSelectedClassId] = useState<string>('');
   // Partner School Filter State
   const [selectedSchool, setSelectedSchool] = useState<string>('');
+
+  // Extract unique school years and semesters from db
+  const filterOptions = useMemo(() => {
+    const years = new Set<string>();
+    const semesters = new Set<string>();
+    Object.values(db.classes).forEach(cls => {
+      if (cls.metadata.schoolYear) years.add(cls.metadata.schoolYear.trim());
+      if (cls.metadata.semester) semesters.add(cls.metadata.semester.trim());
+    });
+    return {
+      years: Array.from(years).sort().reverse(),
+      semesters: Array.from(semesters).sort()
+    };
+  }, [db.classes]);
+
+  // Filtered classes based on Year and Semester
+  const filteredClasses = useMemo(() => {
+    return Object.entries(db.classes).filter(([classId, cls]) => {
+      if (selectedSchoolYear && cls.metadata.schoolYear?.trim() !== selectedSchoolYear) return false;
+      if (selectedSemester && cls.metadata.semester?.trim() !== selectedSemester) return false;
+      if (selectedClassId && classId !== selectedClassId) return false;
+      return true;
+    }).map(([_, cls]) => cls);
+  }, [db.classes, selectedSchoolYear, selectedSemester, selectedClassId]);
+
+  // Aggregate Data
+  const { students, grades, sessions, attendance, classMetadata } = useMemo(() => {
+    let allStudents: Student[] = [];
+    let allGrades: Grade[] = [];
+    let allSessions: AttendanceSession[] = [];
+    let allAttendance: AttendanceRecord[] = [];
+    
+    // Aggregated metadata for syllabus
+    let totalPeriodsNeeded = 0;
+    
+    filteredClasses.forEach(cls => {
+      allStudents = allStudents.concat(cls.students || []);
+      allGrades = allGrades.concat(cls.grades || []);
+      allSessions = allSessions.concat(cls.sessions || []);
+      allAttendance = allAttendance.concat(cls.attendance || []);
+      totalPeriodsNeeded += (cls.metadata.totalPeriods || 60);
+    });
+
+    return {
+      students: allStudents,
+      grades: allGrades,
+      sessions: allSessions,
+      attendance: allAttendance,
+      classMetadata: { totalPeriods: totalPeriodsNeeded }
+    };
+  }, [filteredClasses]);
 
   // Extract unique school names dynamically from students
   const schoolOptions = useMemo(() => {
@@ -73,7 +120,7 @@ export default function TabDashboard({
     const completedTheory = sessions.reduce((sum, s) => sum + (s.theoryHours || 0), 0);
     const completedPractice = sessions.reduce((sum, s) => sum + (s.practiceHours || 0), 0);
     const completedExam = sessions.reduce((sum, s) => sum + (s.examHours || 0), 0);
-    const percentage = Math.min(100, Math.round((completedPeriods / totalPeriodsNeeded) * 100));
+    const percentage = totalPeriodsNeeded > 0 ? Math.min(100, Math.round((completedPeriods / totalPeriodsNeeded) * 100)) : 0;
     return {
       totalPeriodsNeeded,
       completedPeriods,
@@ -322,31 +369,75 @@ export default function TabDashboard({
         </div>
       </motion.div>
 
-      {/* Dynamic Filter and Syllabus progression widget */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Dynamic Partner School Filter */}
-        <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-4.5 flex flex-col justify-between md:col-span-1">
-          <div>
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              🏫 Lọc theo cơ sở liên kết
-            </h4>
-            <p className="text-[11px] text-slate-400 mb-2">Xem thống kê riêng cho từng đơn vị đào tạo đối tác</p>
-          </div>
+      {/* Global Filters */}
+      <motion.div variants={itemVariants} className="bg-white border border-slate-200 shadow-sm rounded-2xl p-4.5 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5 ml-1">Cơ sở liên kết</label>
           <select
             value={selectedSchool}
             onChange={(e) => setSelectedSchool(e.target.value)}
-            className="w-full text-xs p-2.5 rounded-xl border border-slate-250 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-bold text-slate-800 bg-white cursor-pointer"
+            className="w-full text-xs p-2.5 rounded-xl border border-slate-250 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-bold text-slate-800 bg-slate-50 cursor-pointer"
           >
-            <option value="">💡 Tất cả cơ sở đối tác ({schoolOptions.length})</option>
+            <option value="">Tất cả cơ sở đối tác ({schoolOptions.length})</option>
             {schoolOptions.map((sch) => (
-              <option key={sch} value={sch}>
-                📍 {sch}
-              </option>
+              <option key={sch} value={sch}>{sch}</option>
             ))}
           </select>
         </div>
+        <div>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5 ml-1">Năm học</label>
+          <select
+            value={selectedSchoolYear}
+            onChange={(e) => {
+              setSelectedSchoolYear(e.target.value);
+              setSelectedClassId(''); // Reset class when year changes
+            }}
+            className="w-full text-xs p-2.5 rounded-xl border border-slate-250 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-bold text-slate-800 bg-slate-50 cursor-pointer"
+          >
+            <option value="">Tất cả Năm học</option>
+            {filterOptions.years.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5 ml-1">Học kỳ</label>
+          <select
+            value={selectedSemester}
+            onChange={(e) => {
+              setSelectedSemester(e.target.value);
+              setSelectedClassId(''); // Reset class when semester changes
+            }}
+            className="w-full text-xs p-2.5 rounded-xl border border-slate-250 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-bold text-slate-800 bg-slate-50 cursor-pointer"
+          >
+            <option value="">Tất cả Học kỳ</option>
+            {filterOptions.semesters.map(sem => (
+              <option key={sem} value={sem}>{sem}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5 ml-1">Lớp học</label>
+          <select
+            value={selectedClassId}
+            onChange={(e) => setSelectedClassId(e.target.value)}
+            className="w-full text-xs p-2.5 rounded-xl border border-slate-250 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-bold text-slate-800 bg-slate-50 cursor-pointer"
+          >
+            <option value="">Tất cả Lớp học</option>
+            {Object.entries(db.classes)
+              .filter(([_, cls]) => (!selectedSchoolYear || cls.metadata.schoolYear === selectedSchoolYear) && (!selectedSemester || cls.metadata.semester === selectedSemester))
+              .map(([classId, cls]) => (
+                <option key={classId} value={classId}>
+                  {cls.metadata.className} {cls.metadata.subjectName ? `- ${cls.metadata.subjectName}` : ''}
+                </option>
+              ))
+            }
+          </select>
+        </div>
+      </motion.div>
 
-        {/* Syllabus Completed Circular Progression Status */}
+      {/* Syllabus progression widget */}
+      <motion.div variants={itemVariants} className="mb-6">
         <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-4.5 md:col-span-2 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="space-y-1 text-center md:text-left">
             <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -689,7 +780,12 @@ export default function TabDashboard({
           </div>
 
           <div className="flex-1 min-h-0">
-            {sessions.length === 0 ? (
+            {!selectedClassId ? (
+              <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-2">
+                <Clock className="w-8 h-8 opacity-40 text-slate-500" />
+                <p className="text-xs text-center px-4">Vui lòng chọn 1 lớp học cụ thể ở bộ lọc phía trên để xem biểu đồ chuyên cần chi tiết theo từng buổi học.</p>
+              </div>
+            ) : sessions.length === 0 ? (
               <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-2">
                 <Clock className="w-8 h-8 opacity-40 text-slate-500" />
                 <p className="text-xs">Chưa có thông tin buổi học và điểm danh để thống kê xu hướng.</p>
@@ -820,7 +916,12 @@ export default function TabDashboard({
           </div>
 
           <div className="flex-1 min-h-0">
-            {sessions.length === 0 ? (
+            {!selectedClassId ? (
+              <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-2">
+                <Users className="w-8 h-8 opacity-40 text-slate-500" />
+                <p className="text-xs text-center px-4">Vui lòng chọn 1 lớp học cụ thể ở bộ lọc phía trên để xem biểu đồ sĩ số chi tiết.</p>
+              </div>
+            ) : sessions.length === 0 ? (
               <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-2">
                 <Users className="w-8 h-8 opacity-40 text-slate-500" />
                 <p className="text-xs">Chưa có thông tin buổi học và điểm danh để thống kê sĩ số chi tiết.</p>
