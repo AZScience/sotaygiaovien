@@ -58,6 +58,7 @@ export default function Sidebar({
   const [filterTeacher, setFilterTeacher] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [expandedClassIds, setExpandedClassIds] = useState<Record<string, boolean>>({});
+  const [isSystemMenuExpanded, setIsSystemMenuExpanded] = useState(false);
 
   // Backup & Restore states
   const [showRestoreModal, setShowRestoreModal] = useState(false);
@@ -603,77 +604,87 @@ export default function Sidebar({
 
       {/* Storage and System Settings Action Block */}
       <div className="p-4 border-t border-slate-800/80 bg-slate-950 shrink-0 text-sans">
-        <span className="block px-2 text-slate-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 select-none mb-3">
-          <Database className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-          <span>Dữ liệu &amp; Hệ thống</span>
-        </span>
+        <button 
+          onClick={() => setIsSystemMenuExpanded(!isSystemMenuExpanded)}
+          className="w-full flex items-center justify-between px-2 text-slate-400 hover:text-slate-200 text-[10px] font-bold uppercase tracking-wider select-none mb-3 cursor-pointer transition-colors"
+        >
+          <div className="flex items-center gap-1.5">
+            <Database className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span>Dữ liệu &amp; Hệ thống</span>
+          </div>
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isSystemMenuExpanded ? '' : '-rotate-90'}`} />
+        </button>
 
-        <div className="grid grid-cols-2 gap-2">
-          {/* Backup button */}
-          <button
-            onClick={handleCreateBackup}
-            className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-400 hover:text-emerald-300 text-xs font-bold transition border border-emerald-800/50 hover:border-emerald-700/60 cursor-pointer shadow-sm select-none"
-            title="Tạo bản sao lưu hệ thống"
-          >
-            <Download className="w-3.5 h-3.5 shrink-0" />
-            <span>Backup</span>
-          </button>
+        {isSystemMenuExpanded && (
+          <div className="animate-in slide-in-from-top-2 fade-in duration-200">
+            <div className="grid grid-cols-2 gap-2">
+              {/* Backup button */}
+              <button
+                onClick={handleCreateBackup}
+                className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-400 hover:text-emerald-300 text-xs font-bold transition border border-emerald-800/50 hover:border-emerald-700/60 cursor-pointer shadow-sm select-none"
+                title="Tạo bản sao lưu hệ thống"
+              >
+                <Download className="w-3.5 h-3.5 shrink-0" />
+                <span>Backup</span>
+              </button>
 
-          {/* Restore button */}
-          <button
-            onClick={handleOpenRestore}
-            className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-indigo-950/40 hover:bg-indigo-900/60 text-indigo-400 hover:text-indigo-300 text-xs font-bold transition border border-indigo-800/50 hover:border-indigo-700/60 cursor-pointer shadow-sm select-none"
-            title="Khôi phục dữ liệu từ các bản sao lưu"
-          >
-            <History className="w-3.5 h-3.5 shrink-0" />
-            <span>Restore</span>
-          </button>
+              {/* Restore button */}
+              <button
+                onClick={handleOpenRestore}
+                className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-indigo-950/40 hover:bg-indigo-900/60 text-indigo-400 hover:text-indigo-300 text-xs font-bold transition border border-indigo-800/50 hover:border-indigo-700/60 cursor-pointer shadow-sm select-none"
+                title="Khôi phục dữ liệu từ các bản sao lưu"
+              >
+                <History className="w-3.5 h-3.5 shrink-0" />
+                <span>Restore</span>
+              </button>
 
-          {/* Export JSON button */}
-          <button
-            onClick={exportJSON}
-            className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-amber-950/40 hover:bg-amber-900/60 text-amber-400 hover:text-amber-300 text-xs font-bold transition border border-amber-800/50 hover:border-amber-700/60 cursor-pointer shadow-sm select-none"
-            title="Xuất dữ liệu ra file JSON"
-          >
-            <Download className="w-3.5 h-3.5 shrink-0" />
-            <span>Xuất File</span>
-          </button>
+              {/* Export JSON button */}
+              <button
+                onClick={exportJSON}
+                className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-amber-950/40 hover:bg-amber-900/60 text-amber-400 hover:text-amber-300 text-xs font-bold transition border border-amber-800/50 hover:border-amber-700/60 cursor-pointer shadow-sm select-none"
+                title="Xuất dữ liệu ra file JSON"
+              >
+                <Download className="w-3.5 h-3.5 shrink-0" />
+                <span>Xuất File</span>
+              </button>
 
-          {/* Import JSON button */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-sky-950/40 hover:bg-sky-900/60 text-sky-400 hover:text-sky-300 text-xs font-bold transition border border-sky-800/50 hover:border-sky-700/60 cursor-pointer shadow-sm select-none"
-            title="Nhập dữ liệu từ file JSON"
-          >
-            <Database className="w-3.5 h-3.5 shrink-0" />
-            <span>Nhập File</span>
-          </button>
-          <input
-            type="file"
-            accept=".json"
-            ref={fileInputRef}
-            onChange={handleImportFile}
-            className="hidden"
-          />
-        </div>
+              {/* Import JSON button */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-sky-950/40 hover:bg-sky-900/60 text-sky-400 hover:text-sky-300 text-xs font-bold transition border border-sky-800/50 hover:border-sky-700/60 cursor-pointer shadow-sm select-none"
+                title="Nhập dữ liệu từ file JSON"
+              >
+                <Database className="w-3.5 h-3.5 shrink-0" />
+                <span>Nhập File</span>
+              </button>
+              <input
+                type="file"
+                accept=".json"
+                ref={fileInputRef}
+                onChange={handleImportFile}
+                className="hidden"
+              />
+            </div>
 
-        <div className="mt-3 pt-2.5 border-t border-slate-900/80 flex justify-between items-center text-[10px] text-slate-500 px-1 font-mono select-none">
-          <span className="flex items-center gap-1">
-            {sqliteInfo?.ready ? (
-              <>
-                <HardDrive className="w-3 h-3 text-indigo-400 shrink-0" />
-                <span className="text-indigo-400 font-bold">SQLite</span>
-                <span className="text-slate-500">• {(sqliteInfo.sizeBytes / 1024).toFixed(1)} KB</span>
-              </>
-            ) : (
-              <>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
-                <span>BỘ NHỜ LOCAL</span>
-              </>
-            )}
-          </span>
-          <span>Sỹ số: {activeClass?.students.length || 0}</span>
-        </div>
+            <div className="mt-3 pt-2.5 border-t border-slate-900/80 flex justify-between items-center text-[10px] text-slate-500 px-1 font-mono select-none">
+              <span className="flex items-center gap-1">
+                {sqliteInfo?.ready ? (
+                  <>
+                    <HardDrive className="w-3 h-3 text-indigo-400 shrink-0" />
+                    <span className="text-indigo-400 font-bold">SQLite</span>
+                    <span className="text-slate-500">• {(sqliteInfo.sizeBytes / 1024).toFixed(1)} KB</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
+                    <span>BỘ NHỜ LOCAL</span>
+                  </>
+                )}
+              </span>
+              <span>Sỹ số: {activeClass?.students.length || 0}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Restore Modal popup */}
