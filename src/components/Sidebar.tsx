@@ -233,66 +233,63 @@ export default function Sidebar({
 
   return (
     <div className="w-full bg-slate-900 text-slate-100 flex flex-col border-r border-slate-800 h-screen overflow-hidden">
-      {/* Brand / Logo */}
-      <div className="p-5 border-b border-slate-800 bg-slate-950/20 flex items-center justify-between gap-3 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 shadow-inner">
-            <GraduationCap className="w-5.5 h-5.5 stroke-[1.5]" />
-          </div>
-          <div>
-            <h1 className="text-lg md:text-xl font-display font-extrabold tracking-wider text-white leading-tight uppercase">
-              Sổ tay Giáo viên
-            </h1>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-              <span className="text-slate-400 text-[10px] font-sans font-bold tracking-wider uppercase leading-none">
-                Cơ sở dữ liệu sư phạm
-              </span>
+      {/* Fixed Header */}
+      <div className="p-4 border-b border-slate-800/80 bg-slate-950 shrink-0 flex flex-col gap-4 z-10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20 shrink-0">
+              <GraduationCap className="w-5.5 h-5.5 stroke-[1.5]" />
+            </div>
+            <div>
+              <h1 className="text-lg md:text-xl font-display font-extrabold tracking-wider text-white leading-tight uppercase">
+                Sổ tay Giáo viên
+              </h1>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                <span className="text-slate-400 text-[10px] font-sans font-bold tracking-wider uppercase leading-none">
+                  Cơ sở dữ liệu sư phạm
+                </span>
+              </div>
             </div>
           </div>
+          
+          {/* Mobile close button "X" inside Sidebar */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer flex items-center justify-center"
+              title="Đóng thanh menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
-        
-        {/* Mobile close button "X" inside Sidebar */}
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer flex items-center justify-center"
-            title="Đóng thanh menu"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
-      </div>
 
-      {/* Class/Subject Selector list */}
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col space-y-4">
-        {/* Grouped Search Filters & Header with minimal spacing */}
-        <div className="space-y-1.5 shrink-0 flex flex-col">
-          {/* Dynamic Search & Filters Module */}
-          <div className="bg-slate-950/30 p-3 rounded-xl border border-slate-800/80 space-y-3 font-sans shadow-inner">
-            {/* Search Input and Filter Toggle Icon on the same line */}
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Search className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                </span>
-                <input
-                  type="text"
-                  placeholder="Tìm tên lớp, môn học..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-950/50 text-xs text-slate-100 pl-8.5 pr-14 py-2 rounded-lg border border-slate-800/80 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 placeholder-slate-500 font-sans transition-all"
-                />
-                {hasActiveFilters && (
-                  <button
-                    type="button"
-                    onClick={clearAllFilters}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-[10px] font-extrabold text-rose-400 hover:text-rose-300 transition cursor-pointer font-sans"
-                  >
-                    Xóa lọc
-                  </button>
-                )}
-              </div>
+        {/* Dynamic Search & Filters Module directly under Header */}
+        <div className="bg-slate-950/30 p-2.5 rounded-xl border border-slate-800/80 space-y-3 font-sans shadow-inner">
+          {/* Search Input and Filter Toggle Icon on the same line */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              </span>
+              <input
+                type="text"
+                placeholder="Tìm tên lớp, môn học..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-950/50 text-xs text-slate-100 pl-8.5 pr-14 py-2 rounded-lg border border-slate-800/80 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 placeholder-slate-500 font-sans transition-all"
+              />
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-[10px] font-extrabold text-rose-400 hover:text-rose-300 transition cursor-pointer font-sans"
+                >
+                  Xóa lọc
+                </button>
+              )}
+            </div>
 
               {/* Filter Toggle Button */}
               <button
@@ -377,23 +374,25 @@ export default function Sidebar({
               </div>
             )}
           </div>
+      </div>
 
-          {/* Prominent Class List Header */}
-          <div className="flex items-center justify-between px-2.5 py-2.5 rounded-xl bg-slate-950/40 border border-slate-800/60 shadow-xs select-none">
-            <div className="flex items-center gap-2">
-              <span className="flex h-1.5 w-1.5 rounded-full bg-indigo-400 shrink-0 animate-pulse"></span>
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-200">
-                Danh sách lớp học ({filteredClasses.length}/{Object.keys(db.classes).length})
-              </span>
-            </div>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-550 text-white transition-all shadow-md flex items-center justify-center cursor-pointer border border-indigo-500/25 hover:scale-105 active:scale-95 shrink-0"
-              title="Thêm lớp học mới"
-            >
-              <Plus className="w-4 h-4 stroke-[3]" />
-            </button>
+      {/* Class/Subject Selector list */}
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col space-y-3">
+        {/* Prominent Class List Header */}
+        <div className="flex items-center justify-between px-2.5 py-2.5 rounded-xl bg-slate-950/40 border border-slate-800/60 shadow-xs select-none shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="flex h-1.5 w-1.5 rounded-full bg-indigo-400 shrink-0 animate-pulse"></span>
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-200">
+              Danh sách lớp học ({filteredClasses.length}/{Object.keys(db.classes).length})
+            </span>
           </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-550 text-white transition-all shadow-md flex items-center justify-center cursor-pointer border border-indigo-500/25 hover:scale-105 active:scale-95 shrink-0"
+            title="Thêm lớp học mới"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+          </button>
         </div>
 
         <div className="space-y-2.5 flex-1 overflow-y-auto pr-1">
