@@ -272,14 +272,14 @@ export default function Sidebar({
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               </span>
               <input
                 type="text"
                 placeholder="Tìm tên lớp, môn học..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-950/50 text-xs text-slate-100 pl-8.5 pr-14 py-2 rounded-lg border border-slate-800/80 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 placeholder-slate-500 font-sans transition-all"
+                className="w-full bg-slate-800/60 text-xs text-white pl-8.5 pr-14 py-2.5 rounded-lg border border-slate-600 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30 placeholder-slate-400 font-sans transition-all shadow-sm"
               />
               {hasActiveFilters && (
                 <button
@@ -296,10 +296,10 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => setShowFilters(!showFilters)}
-                className={`p-2 rounded-lg border transition-all cursor-pointer flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 ${
+                className={`w-[38px] h-[38px] rounded-lg border transition-all cursor-pointer flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 shadow-sm ${
                   showFilters
                     ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
-                    : 'bg-slate-950/50 border-slate-850 text-slate-450 hover:text-white hover:border-slate-750'
+                    : 'bg-slate-800/60 border-slate-600 text-slate-300 hover:text-white hover:border-slate-400'
                 }`}
                 title={showFilters ? "Thu gọn bộ lọc" : "Mở rộng bộ lọc"}
               >
