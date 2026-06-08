@@ -235,7 +235,7 @@ export default function Sidebar({
   return (
     <div className="w-full bg-slate-900 text-slate-100 flex flex-col border-r border-slate-800 h-screen overflow-hidden">
       {/* Fixed Header */}
-      <div className="p-4 border-b border-slate-800/80 bg-slate-950 shrink-0 flex flex-col gap-4 z-10">
+      <div className="px-4 pt-4 pb-3 border-b border-slate-800/80 bg-slate-950 shrink-0 flex flex-col gap-1.5 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20 shrink-0">
