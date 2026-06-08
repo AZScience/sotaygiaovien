@@ -497,53 +497,56 @@ export default function TabCover({ metadata, studentCount, students = [], teache
             </div>
           </div>
 
-          {/* Entry description requirements */}
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-              <ListTodo className="w-3.5 h-3.5 text-pink-500 shrink-0" />
-              <span>Trình độ đầu vào và hình thức đánh giá</span>
-            </label>
-            <input
-              type="text"
-              name="entryRequirements"
-              value={metadata.entryRequirements}
-              onChange={handleChange}
-              className="w-full text-sm p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            />
+          {/* Entry requirements and GVCN */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <ListTodo className="w-3.5 h-3.5 text-pink-500 shrink-0" />
+                <span>Trình độ đầu vào và hình thức đánh giá</span>
+              </label>
+              <input
+                type="text"
+                name="entryRequirements"
+                value={metadata.entryRequirements}
+                onChange={handleChange}
+                className="w-full text-sm p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-755 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                <span>Giáo viên chủ nhiệm (GVCN)</span>
+              </label>
+              <select
+                name="formTeacher"
+                value={metadata.formTeacher || ''}
+                onChange={handleChange}
+                className="w-full text-sm p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-semibold text-slate-800 bg-white cursor-pointer select-none"
+              >
+                <option value="">— Chọn GVCN —</option>
+                {teachers.map((t) => {
+                  const fullName = `${t.lastName} ${t.firstName}`.trim();
+                  return (
+                    <option key={t.id} value={fullName}>
+                      👤 {fullName}
+                    </option>
+                  );
+                })}
+                {metadata.formTeacher && !teachers.some(t => `${t.lastName} ${t.firstName}`.trim().toLowerCase() === (metadata.formTeacher || '').trim().toLowerCase()) && (
+                  <option value={metadata.formTeacher}>{metadata.formTeacher} (Tùy chỉnh khác)</option>
+                )}
+              </select>
+            </div>
           </div>
 
           <div className="border-t border-slate-100 pt-5 space-y-4">
             <h4 className="text-sm font-display font-semibold text-slate-900 flex items-center gap-2">
               <Users className="w-4 h-4 text-emerald-600" />
-              Bộ máy quản lý & Ban cán sự lớp
+              Ban cán sự lớp
             </h4>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-755 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                  <span>Giáo viên chủ nhiệm (GVCN)</span>
-                </label>
-                <select
-                  name="formTeacher"
-                  value={metadata.formTeacher || ''}
-                  onChange={handleChange}
-                  className="w-full text-sm p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-semibold text-slate-800 bg-white cursor-pointer select-none"
-                >
-                  <option value="">— Chọn GVCN —</option>
-                  {teachers.map((t) => {
-                    const fullName = `${t.lastName} ${t.firstName}`.trim();
-                    return (
-                      <option key={t.id} value={fullName}>
-                        👤 {fullName}
-                      </option>
-                    );
-                  })}
-                  {metadata.formTeacher && !teachers.some(t => `${t.lastName} ${t.firstName}`.trim().toLowerCase() === (metadata.formTeacher || '').trim().toLowerCase()) && (
-                    <option value={metadata.formTeacher}>{metadata.formTeacher} (Tùy chỉnh khác)</option>
-                  )}
-                </select>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
