@@ -105,6 +105,42 @@ export default function Sidebar({
     }
   };
 
+  const exportJSON = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `SoTayGiaoVien_Backup_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = JSON.parse(event.target?.result as string);
+        if (parsed && typeof parsed === 'object' && parsed.classes && parsed.activeClassId) {
+          if (onImportDatabase) {
+             onImportDatabase(parsed);
+             alert('Khôi phục dữ liệu từ tệp tin thành công!');
+          }
+        } else {
+          alert('Tệp tin không đúng định dạng Sổ tay Giáo viên backup.');
+        }
+      } catch (err) {
+        alert('Có lỗi xảy ra khi đọc file JSON.');
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const activeClass = db.classes[db.activeClassId];
 
   // Dynamic filter values collected from all existing classes in the DB
@@ -592,6 +628,33 @@ export default function Sidebar({
             <History className="w-3.5 h-3.5 shrink-0" />
             <span>Restore</span>
           </button>
+
+          {/* Export JSON button */}
+          <button
+            onClick={exportJSON}
+            className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-amber-950/40 hover:bg-amber-900/60 text-amber-400 hover:text-amber-300 text-xs font-bold transition border border-amber-800/50 hover:border-amber-700/60 cursor-pointer shadow-sm select-none"
+            title="Xuất dữ liệu ra file JSON"
+          >
+            <Download className="w-3.5 h-3.5 shrink-0" />
+            <span>Xuất File</span>
+          </button>
+
+          {/* Import JSON button */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-sky-950/40 hover:bg-sky-900/60 text-sky-400 hover:text-sky-300 text-xs font-bold transition border border-sky-800/50 hover:border-sky-700/60 cursor-pointer shadow-sm select-none"
+            title="Nhập dữ liệu từ file JSON"
+          >
+            <Database className="w-3.5 h-3.5 shrink-0" />
+            <span>Nhập File</span>
+          </button>
+          <input
+            type="file"
+            accept=".json"
+            ref={fileInputRef}
+            onChange={handleImportFile}
+            className="hidden"
+          />
         </div>
 
         <div className="mt-3 pt-2.5 border-t border-slate-900/80 flex justify-between items-center text-[10px] text-slate-500 px-1 font-mono select-none">
