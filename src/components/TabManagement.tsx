@@ -29,7 +29,7 @@ import {
   ChevronDown,
   GraduationCap as SchoolIcon 
 } from 'lucide-react';
-import { Student, ClassMetadata, Grade, Teacher, CurrentUser } from '../types';
+import { Student, ClassMetadata, Grade, Teacher, CurrentUser, UserRole } from '../types';
 
 interface TabManagementProps {
   students: Student[];
@@ -77,7 +77,7 @@ interface TabManagementProps {
     specialty?: string,
     department?: string,
     password?: string,
-    role?: 'admin' | 'teacher'
+    role?: UserRole
   ) => void;
   onAddBulkTeachers: (
     bulkList: { 
@@ -101,7 +101,7 @@ interface TabManagementProps {
     specialty?: string,
     department?: string,
     password?: string,
-    role?: 'admin' | 'teacher'
+    role?: UserRole
   ) => void;
   currentUser?: CurrentUser | null;
 }
@@ -180,7 +180,7 @@ export default function TabManagement({
   const [tchSpecialty, setTchSpecialty] = useState('');
   const [tchDepartment, setTchDepartment] = useState('');
   const [tchPassword, setTchPassword] = useState('');
-  const [tchRole, setTchRole] = useState<'admin' | 'teacher'>('teacher');
+  const [tchRole, setTchRole] = useState<UserRole>('teacher');
   const [tchFormError, setTchFormError] = useState('');
   const [tchSuccessMsg, setTchSuccessMsg] = useState('');
 
@@ -214,7 +214,7 @@ export default function TabManagement({
   const [editTchSpecialty, setEditTchSpecialty] = useState('');
   const [editTchDepartment, setEditTchDepartment] = useState('');
   const [editTchPassword, setEditTchPassword] = useState('');
-  const [editTchRole, setEditTchRole] = useState<'admin' | 'teacher'>('teacher');
+  const [editTchRole, setEditTchRole] = useState<UserRole>('teacher');
 
   // Teacher Deleting confirmation
   const [confirmDeleteTchId, setConfirmDeleteTchId] = useState<string | null>(null);
@@ -1820,11 +1820,15 @@ export default function TabManagement({
                       <label className="block font-bold text-slate-700 mb-0.5">Quyền hạn</label>
                       <select
                         value={tchRole}
-                        onChange={(e) => setTchRole(e.target.value as 'admin' | 'teacher')}
-                        className="w-full text-xs p-2.5 border border-slate-200 rounded-xl text-slate-800 bg-white focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                        onChange={(e) => setTchRole(e.target.value as UserRole)}
+                        className="w-full bg-slate-50 border border-slate-200 p-2 text-sm rounded-lg focus:outline-none focus:border-indigo-500 transition"
                       >
-                        <option value="teacher">Giảng viên</option>
-                        <option value="admin">Admin</option>
+                        <option value="admin">Quản trị (Admin)</option>
+                        <option value="dean">Trưởng khoa</option>
+                        <option value="academic_staff">Giáo vụ</option>
+                        <option value="staff">Nhân viên</option>
+                        <option value="teacher">Giáo viên</option>
+                        <option value="student">Học sinh</option>
                       </select>
                     </div>
                   </div>
@@ -2111,7 +2115,7 @@ export default function TabManagement({
                                   />
                                 ) : (
                                   <span className="font-mono text-[11px] text-slate-500">
-                                    {(currentUser?.role === 'admin' || currentUser?.id === tc.id) ? (tc.password || '123456') : '***'}
+                                    {(['admin', 'dean', 'academic_staff'].includes(currentUser?.role || '') || currentUser?.id === tc.id) ? (tc.password || '123456') : '***'}
                                   </span>
                                 )}
                               </td>
@@ -2119,15 +2123,33 @@ export default function TabManagement({
                                 {isEditing ? (
                                   <select
                                     value={editTchRole}
-                                    onChange={(e) => setEditTchRole(e.target.value as 'admin' | 'teacher')}
+                                    onChange={(e) => setEditTchRole(e.target.value as UserRole)}
                                     className="w-full bg-white p-1.5 border border-slate-300 rounded focus:outline-none"
                                   >
-                                    <option value="teacher">Giảng viên</option>
-                                    <option value="admin">Admin</option>
+                                    <option value="admin">Quản trị (Admin)</option>
+                                    <option value="dean">Trưởng khoa</option>
+                                    <option value="academic_staff">Giáo vụ</option>
+                                    <option value="staff">Nhân viên</option>
+                                    <option value="teacher">Giáo viên</option>
+                                    <option value="student">Học sinh</option>
                                   </select>
                                 ) : (
-                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${tc.role === 'admin' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-                                    {tc.role === 'admin' ? 'Admin' : 'Giảng viên'}
+                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                    tc.role === 'admin' ? 'bg-red-100 text-red-700' :
+                                    tc.role === 'dean' ? 'bg-orange-100 text-orange-700' :
+                                    tc.role === 'academic_staff' ? 'bg-emerald-100 text-emerald-700' :
+                                    tc.role === 'staff' ? 'bg-cyan-100 text-cyan-700' :
+                                    tc.role === 'student' ? 'bg-slate-100 text-slate-700' :
+                                    'bg-blue-100 text-blue-700'
+                                  }`}>
+                                    {
+                                      tc.role === 'admin' ? 'Quản trị' :
+                                      tc.role === 'dean' ? 'Trưởng khoa' :
+                                      tc.role === 'academic_staff' ? 'Giáo vụ' :
+                                      tc.role === 'staff' ? 'Nhân viên' :
+                                      tc.role === 'student' ? 'Học sinh' :
+                                      'Giáo viên'
+                                    }
                                   </span>
                                 )}
                               </td>

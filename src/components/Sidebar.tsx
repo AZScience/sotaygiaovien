@@ -389,7 +389,7 @@ export default function Sidebar({
               Danh sách lớp học ({filteredClasses.length}/{Object.keys(db.classes).length})
             </span>
           </div>
-          {currentUser?.role === 'admin' && (
+          {['admin', 'dean', 'academic_staff'].includes(currentUser?.role || '') && (
             <button
               onClick={() => setShowAddModal(true)}
               className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-550 text-white transition-all shadow-md flex items-center justify-center cursor-pointer border border-indigo-500/25 hover:scale-105 active:scale-95 shrink-0"
@@ -502,7 +502,7 @@ export default function Sidebar({
                         )}
                       </button>
 
-                      {Object.keys(db.classes).length > 1 && currentUser?.role === 'admin' && (
+                      {Object.keys(db.classes).length > 1 && ['admin', 'dean', 'academic_staff'].includes(currentUser?.role || '') && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

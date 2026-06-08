@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export type UserRole = 'admin' | 'dean' | 'academic_staff' | 'staff' | 'teacher' | 'student';
+
 export interface ClassMetadata {
   id: string;
   className: string; // e.g. 18PMA1_CS2
@@ -43,7 +45,7 @@ export interface Teacher {
   phoneNumber?: string; // Số điện thoại liên lạc
   email?: string; // Email liên lạc
   password?: string; // Mật khẩu đăng nhập
-  role?: 'admin' | 'teacher'; // Quyền hạn (Admin/Quản trị viên hoặc Teacher/Giảng viên)
+  role?: UserRole; // Quyền hạn
   specialty?: string; // Bộ môn giảng dạy / Học hàm học vị
   department?: string; // Đơn vị công tác
 }
@@ -51,7 +53,7 @@ export interface Teacher {
 export interface CurrentUser {
   id: string;
   email: string;
-  role: 'admin' | 'teacher';
+  role: UserRole;
   name: string;
 }
 
