@@ -42,8 +42,17 @@ export interface Teacher {
   firstName: string; // e.g. PHÚC
   phoneNumber?: string; // Số điện thoại liên lạc
   email?: string; // Email liên lạc
+  password?: string; // Mật khẩu đăng nhập
+  role?: 'admin' | 'teacher'; // Quyền hạn (Admin/Quản trị viên hoặc Teacher/Giảng viên)
   specialty?: string; // Bộ môn giảng dạy / Học hàm học vị
   department?: string; // Đơn vị công tác
+}
+
+export interface CurrentUser {
+  id: string;
+  email: string;
+  role: 'admin' | 'teacher';
+  name: string;
 }
 
 export interface Grade {

@@ -29,7 +29,7 @@ import {
   ChevronDown,
   GraduationCap as SchoolIcon 
 } from 'lucide-react';
-import { Student, ClassMetadata, Grade, Teacher } from '../types';
+import { Student, ClassMetadata, Grade, Teacher, CurrentUser } from '../types';
 
 interface TabManagementProps {
   students: Student[];
@@ -75,7 +75,9 @@ interface TabManagementProps {
     phoneNumber?: string, 
     email?: string, 
     specialty?: string,
-    department?: string
+    department?: string,
+    password?: string,
+    role?: 'admin' | 'teacher'
   ) => void;
   onAddBulkTeachers: (
     bulkList: { 
@@ -97,8 +99,11 @@ interface TabManagementProps {
     phoneNumber?: string, 
     email?: string, 
     specialty?: string,
-    department?: string
+    department?: string,
+    password?: string,
+    role?: 'admin' | 'teacher'
   ) => void;
+  currentUser?: CurrentUser | null;
 }
 
 export default function TabManagement({
@@ -114,7 +119,8 @@ export default function TabManagement({
   onAddTeacher,
   onAddBulkTeachers,
   onDeleteTeacher,
-  onUpdateTeacher
+  onUpdateTeacher,
+  currentUser
 }: TabManagementProps) {
   // Management sub-tabs: 'students' | 'teachers_list' | 'teachers'
   const [subTab, setSubTab] = useState<'students' | 'teachers_list' | 'teachers'>('students');
@@ -173,6 +179,8 @@ export default function TabManagement({
   const [tchEmail, setTchEmail] = useState('');
   const [tchSpecialty, setTchSpecialty] = useState('');
   const [tchDepartment, setTchDepartment] = useState('');
+  const [tchPassword, setTchPassword] = useState('');
+  const [tchRole, setTchRole] = useState<'admin' | 'teacher'>('teacher');
   const [tchFormError, setTchFormError] = useState('');
   const [tchSuccessMsg, setTchSuccessMsg] = useState('');
 
@@ -205,6 +213,8 @@ export default function TabManagement({
   const [editTchEmail, setEditTchEmail] = useState('');
   const [editTchSpecialty, setEditTchSpecialty] = useState('');
   const [editTchDepartment, setEditTchDepartment] = useState('');
+  const [editTchPassword, setEditTchPassword] = useState('');
+  const [editTchRole, setEditTchRole] = useState<'admin' | 'teacher'>('teacher');
 
   // Teacher Deleting confirmation
   const [confirmDeleteTchId, setConfirmDeleteTchId] = useState<string | null>(null);
@@ -671,7 +681,9 @@ export default function TabManagement({
       tchPhoneNumber.trim(),
       tchEmail.trim(),
       tchSpecialty.trim(),
-      tchDepartment.trim()
+      tchDepartment.trim(),
+      tchPassword.trim(),
+      tchRole
     );
 
     setTchSuccessMsg(`Đã thêm thành công giáo viên: ${trimmedLast} ${trimmedFirst}`);
@@ -688,6 +700,8 @@ export default function TabManagement({
     setTchEmail('');
     setTchSpecialty('');
     setTchDepartment('');
+    setTchPassword('');
+    setTchRole('teacher');
 
     setTimeout(() => {
       setTchSuccessMsg('');
@@ -979,6 +993,8 @@ export default function TabManagement({
     setEditTchEmail(t.email || '');
     setEditTchSpecialty(t.specialty || '');
     setEditTchDepartment(t.department || '');
+    setEditTchPassword(t.password || '');
+    setEditTchRole(t.role || 'teacher');
   };
 
   const saveTchRowEdit = (tId: string) => {
@@ -994,7 +1010,9 @@ export default function TabManagement({
       editTchPhoneNumber, 
       editTchEmail, 
       editTchSpecialty,
-      editTchDepartment
+      editTchDepartment,
+      editTchPassword,
+      editTchRole
     );
     setEditingTchId(null);
   };
@@ -1775,14 +1793,39 @@ export default function TabManagement({
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-705 mb-0.5">Email liên hệ</label>
+                      <label className="block font-bold text-slate-700 mb-0.5">Email liên hệ</label>
                       <input
                         type="email"
                         value={tchEmail}
                         onChange={(e) => setTchEmail(e.target.value)}
                         placeholder="name@school.edu.vn"
-                        className="w-full text-xs p-2.5 border border-slate-200 rounded-xl text-slate-800 font-mono focus:ring-1 focus:ring-indigo-505 focus:outline-none"
+                        className="w-full text-xs p-2.5 border border-slate-200 rounded-xl text-slate-800 font-mono focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                       />
+                    </div>
+                  </div>
+                  
+                  {/* Auth fields */}
+                  <div className="grid grid-cols-2 gap-3 mt-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-0.5">Mật khẩu</label>
+                      <input
+                        type="text"
+                        value={tchPassword}
+                        onChange={(e) => setTchPassword(e.target.value)}
+                        placeholder="Mặc định: 123456"
+                        className="w-full text-xs p-2.5 border border-slate-200 rounded-xl text-slate-800 font-mono focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-0.5">Quyền hạn</label>
+                      <select
+                        value={tchRole}
+                        onChange={(e) => setTchRole(e.target.value as 'admin' | 'teacher')}
+                        className="w-full text-xs p-2.5 border border-slate-200 rounded-xl text-slate-800 bg-white focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                      >
+                        <option value="teacher">Giảng viên</option>
+                        <option value="admin">Admin</option>
+                      </select>
                     </div>
                   </div>
 
@@ -1944,13 +1987,15 @@ export default function TabManagement({
                         <th className="py-2.5 px-3">Đơn vị công tác</th>
                         <th className="py-2.5 px-3 w-28">Số điện thoại</th>
                         <th className="py-2.5 px-3">Email</th>
+                        <th className="py-2.5 px-3">Mật khẩu</th>
+                        <th className="py-2.5 px-3">Quyền hạn</th>
                         <th className="py-2.5 px-3 text-center w-24">Sửa/Xóa</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
                       {sortedTeachers.length === 0 ? (
                         <tr>
-                          <td colSpan={9} className="py-8 text-center text-slate-405 font-medium font-sans">
+                          <td colSpan={11} className="py-8 text-center text-slate-405 font-medium font-sans">
                             Không tìm thấy hồ sơ giáo viên nào phù hợp hoặc danh sách trống.
                           </td>
                         </tr>
@@ -2054,6 +2099,36 @@ export default function TabManagement({
                                   />
                                 ) : (
                                   <span className="font-mono text-[11px] text-slate-505">{tc.email || '—'}</span>
+                                )}
+                              </td>
+                              <td className="py-2 px-3">
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    value={editTchPassword}
+                                    onChange={(e) => setEditTchPassword(e.target.value)}
+                                    className="w-full bg-white p-1.5 border border-slate-300 rounded font-mono focus:outline-none"
+                                  />
+                                ) : (
+                                  <span className="font-mono text-[11px] text-slate-500">
+                                    {(currentUser?.role === 'admin' || currentUser?.id === tc.id) ? (tc.password || '123456') : '***'}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-2 px-3">
+                                {isEditing ? (
+                                  <select
+                                    value={editTchRole}
+                                    onChange={(e) => setEditTchRole(e.target.value as 'admin' | 'teacher')}
+                                    className="w-full bg-white p-1.5 border border-slate-300 rounded focus:outline-none"
+                                  >
+                                    <option value="teacher">Giảng viên</option>
+                                    <option value="admin">Admin</option>
+                                  </select>
+                                ) : (
+                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${tc.role === 'admin' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                                    {tc.role === 'admin' ? 'Admin' : 'Giảng viên'}
+                                  </span>
                                 )}
                               </td>
                               <td className="py-2 px-3 text-center">

@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { AppDatabase, ClassData, ClassMetadata, Grade, Student, AttendanceSession, AttendanceRecord, Teacher } from './types';
+import { AppDatabase, ClassData, ClassMetadata, Grade, Student, AttendanceSession, AttendanceRecord, Teacher, CurrentUser } from './types';
 import { loadDatabase, saveDatabase, getInitialDatabase } from './utils/database';
 import { initSQLiteDB, sqliteLoad, sqliteSave, isSQLiteReady, getSQLiteInfo } from './utils/sqlite';
 import Sidebar from './components/Sidebar';
@@ -17,6 +17,7 @@ import TabExamList from './components/TabExamList';
 import TabManagement from './components/TabManagement';
 import TabDashboard from './components/TabDashboard';
 import StudentPortal from './components/StudentPortal';
+import LoginScreen from './components/LoginScreen';
 import { BookOpen, GraduationCap, Calendar, Settings, ListFilter, ClipboardCheck, Menu, X, FileSpreadsheet, CalendarRange, Printer, Users, Lock, Unlock, ExternalLink, Info, LayoutDashboard } from 'lucide-react';
 
 export default function App() {
@@ -25,6 +26,49 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sqliteReady, setSqliteReady] = useState(false);
   const [sqliteInfo, setSqliteInfo] = useState<{ sizeBytes: number; ready: boolean }>({ sizeBytes: 0, ready: false });
+
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [loginError, setLoginError] = useState<string | undefined>();
+
+  const handleLogin = (email: string, password: string) => {
+    // 1. Hardcoded admin fallback for bootstrap
+    if ((email === 'admin' || email === 'admin@example.com') && (password === 'admin123' || password === 'admin')) {
+      setCurrentUser({ id: 'admin_sys', email: 'admin@example.com', role: 'admin', name: 'Quản trị viên Hệ thống' });
+      setLoginError(undefined);
+      return;
+    }
+
+    if (!db) {
+      setLoginError('Cơ sở dữ liệu chưa sẵn sàng hoặc rỗng.');
+      return;
+    }
+
+    // 2. Search in all classes for a matching teacher
+    let foundTeacher: Teacher | null = null;
+    for (const classId of Object.keys(db.classes)) {
+      const cls = db.classes[classId];
+      if (cls.teachers) {
+        const match = cls.teachers.find(t => (t.email === email || t.teacherCode === email) && t.password === password);
+        if (match) {
+          foundTeacher = match;
+          break;
+        }
+      }
+    }
+
+    if (foundTeacher) {
+      setCurrentUser({
+        id: foundTeacher.id,
+        email: foundTeacher.email || email,
+        role: foundTeacher.role === 'admin' ? 'admin' : 'teacher',
+        name: `${foundTeacher.lastName} ${foundTeacher.firstName}`
+      });
+      setLoginError(undefined);
+    } else {
+      setLoginError('Email/Tài khoản hoặc mật khẩu không chính xác.');
+    }
+  };
 
   // Listen for real-time QR attendance check-ins from separate tabs/devices on the same origin
   useEffect(() => {
@@ -567,14 +611,16 @@ export default function App() {
     phoneNumber?: string,
     email?: string,
     specialty?: string,
-    department?: string
+    department?: string,
+    password?: string,
+    role?: 'admin' | 'teacher'
   ) => {
     if (activeClass.metadata.isLocked) {
       alert("Lớp học này đã Bị Khóa số liệu. Hãy click vào biểu tượng Ổ khóa ở Danh sách lớp để mở khóa trước!");
       return;
     }
     const newTeacherId = `tch_${Date.now()}`;
-    const newTeacher = {
+    const newTeacher: Teacher = {
       id: newTeacherId,
       teacherCode: teacherCode.trim().toUpperCase(),
       lastName: lastName.trim(),
@@ -582,7 +628,9 @@ export default function App() {
       phoneNumber: phoneNumber?.trim(),
       email: email?.trim(),
       specialty: specialty?.trim(),
-      department: department?.trim()
+      department: department?.trim(),
+      password: password?.trim() || '123456', // Mặc định 123456
+      role: role || 'teacher'
     };
 
     const updatedClass: ClassData = {
@@ -685,7 +733,9 @@ export default function App() {
     phoneNumber?: string,
     email?: string,
     specialty?: string,
-    department?: string
+    department?: string,
+    password?: string,
+    role?: 'admin' | 'teacher'
   ) => {
     if (!db) return;
     if (activeClass.metadata.isLocked) {
@@ -703,7 +753,9 @@ export default function App() {
           phoneNumber: phoneNumber?.trim(),
           email: email?.trim(),
           specialty: specialty?.trim(),
-          department: department?.trim()
+          department: department?.trim(),
+          password: password?.trim() || t.password,
+          role: role || t.role || 'teacher'
         };
       }
       return t;
@@ -887,6 +939,10 @@ export default function App() {
     });
   };
 
+  if (!currentUser) {
+    return <LoginScreen onLogin={handleLogin} error={loginError} />;
+  }
+
   return (
     <div className="flex h-screen bg-slate-100 font-sans text-slate-800 overflow-hidden print:h-auto print:overflow-visible print:bg-white relative">
       
@@ -926,6 +982,7 @@ export default function App() {
           onClose={() => setSidebarOpen(false)}
           sqliteInfo={sqliteInfo}
           onExportSQLite={() => { import('./utils/sqlite').then(m => m.sqliteExportFile()); }}
+          currentUser={currentUser}
         />
       </div>
 

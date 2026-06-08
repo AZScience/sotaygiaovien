@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { AppDatabase, ClassMetadata } from '../types';
+import { AppDatabase, ClassMetadata, CurrentUser } from '../types';
 import { 
   Plus, Trash2, Download, Upload, RotateCcw, BookOpen, GraduationCap, 
   Calendar, Settings, Users, Lock, Unlock, Search, Database, School, 
@@ -26,6 +26,7 @@ interface SidebarProps {
   onClose?: () => void;
   sqliteInfo?: { sizeBytes: number; ready: boolean };
   onExportSQLite?: () => void;
+  currentUser?: CurrentUser | null;
 }
 
 export default function Sidebar({
@@ -40,7 +41,8 @@ export default function Sidebar({
   onToggleClassLock,
   onClose,
   sqliteInfo,
-  onExportSQLite
+  onExportSQLite,
+  currentUser
 }: SidebarProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newClassName, setNewClassName] = useState('');
@@ -387,13 +389,15 @@ export default function Sidebar({
               Danh sách lớp học ({filteredClasses.length}/{Object.keys(db.classes).length})
             </span>
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-550 text-white transition-all shadow-md flex items-center justify-center cursor-pointer border border-indigo-500/25 hover:scale-105 active:scale-95 shrink-0"
-            title="Thêm lớp học mới"
-          >
-            <Plus className="w-4 h-4 stroke-[3]" />
-          </button>
+          {currentUser?.role === 'admin' && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-550 text-white transition-all shadow-md flex items-center justify-center cursor-pointer border border-indigo-500/25 hover:scale-105 active:scale-95 shrink-0"
+              title="Thêm lớp học mới"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+            </button>
+          )}
         </div>
 
         <div className="space-y-2.5 flex-1 overflow-y-auto pr-1">
@@ -498,7 +502,7 @@ export default function Sidebar({
                         )}
                       </button>
 
-                      {Object.keys(db.classes).length > 1 && (
+                      {Object.keys(db.classes).length > 1 && currentUser?.role === 'admin' && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -612,17 +616,18 @@ export default function Sidebar({
       )}
 
       {/* Storage and System Settings Action Block */}
-      <div className="p-4 border-t border-slate-800/80 bg-slate-950 shrink-0 text-sans">
-        <button 
-          onClick={() => setIsSystemMenuExpanded(!isSystemMenuExpanded)}
-          className="w-full flex items-center justify-between px-2 text-slate-400 hover:text-slate-200 text-[10px] font-bold uppercase tracking-wider select-none mb-3 cursor-pointer transition-colors"
-        >
-          <div className="flex items-center gap-1.5">
-            <Database className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            <span>Dữ liệu &amp; Hệ thống</span>
-          </div>
-          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isSystemMenuExpanded ? '' : '-rotate-90'}`} />
-        </button>
+      {currentUser?.role === 'admin' && (
+        <div className="p-4 border-t border-slate-800/80 bg-slate-950 shrink-0 text-sans">
+          <button 
+            onClick={() => setIsSystemMenuExpanded(!isSystemMenuExpanded)}
+            className="w-full flex items-center justify-between px-2 text-slate-400 hover:text-slate-200 text-[10px] font-bold uppercase tracking-wider select-none mb-3 cursor-pointer transition-colors"
+          >
+            <div className="flex items-center gap-1.5">
+              <Database className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>Dữ liệu &amp; Hệ thống</span>
+            </div>
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isSystemMenuExpanded ? '' : '-rotate-90'}`} />
+          </button>
 
         {isSystemMenuExpanded && (
           <div className="animate-in slide-in-from-top-2 fade-in duration-200">
@@ -695,6 +700,7 @@ export default function Sidebar({
           </div>
         )}
       </div>
+      )}
 
       {/* Restore Modal popup */}
       {showRestoreModal && (
